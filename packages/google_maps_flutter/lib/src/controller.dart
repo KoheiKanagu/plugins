@@ -40,6 +40,10 @@ class GoogleMapController extends ChangeNotifier {
 
   final MethodChannel _channel;
 
+  final ArgumentCallbacks<LatLng> onMapClicked = ArgumentCallbacks<LatLng>();
+
+  final ArgumentCallbacks<LatLng> onMapLongClicked = ArgumentCallbacks<LatLng>();
+
   /// Callbacks to receive tap events for markers placed on this map.
   final ArgumentCallbacks<Marker> onMarkerTapped = ArgumentCallbacks<Marker>();
 
@@ -80,6 +84,16 @@ class GoogleMapController extends ChangeNotifier {
         if (marker != null) {
           onMarkerTapped(marker);
         }
+        break;
+      case 'map#onMapLongClicked':
+        final double latitude = call.arguments['latitude'];
+        final double longitude = call.arguments['longitude'];
+        onMapLongClicked(LatLng(latitude, longitude));
+        break;
+      case 'map#onMapClicked':
+        final double latitude = call.arguments['latitude'];
+        final double longitude = call.arguments['longitude'];
+        onMapClicked(LatLng(latitude, longitude));
         break;
       case 'camera#onMoveStarted':
         _isCameraMoving = true;

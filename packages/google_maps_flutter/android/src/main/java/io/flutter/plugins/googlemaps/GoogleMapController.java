@@ -45,6 +45,8 @@ final class GoogleMapController
         GoogleMap.OnCameraMoveStartedListener,
         GoogleMap.OnInfoWindowClickListener,
         GoogleMap.OnMarkerClickListener,
+        GoogleMap.OnMapClickListener,
+        GoogleMap.OnMapLongClickListener,
         GoogleMapOptionsSink,
         MethodChannel.MethodCallHandler,
         OnMapReadyCallback,
@@ -177,6 +179,8 @@ final class GoogleMapController
     googleMap.setOnCameraMoveListener(this);
     googleMap.setOnCameraIdleListener(this);
     googleMap.setOnMarkerClickListener(this);
+    googleMap.setOnMapClickListener(this);
+    googleMap.setOnMapLongClickListener(this);
     updateMyLocationEnabled();
   }
 
@@ -436,5 +440,21 @@ final class GoogleMapController
     }
     return context.checkPermission(
         permission, android.os.Process.myPid(), android.os.Process.myUid());
+  }
+
+  @Override
+  public void onMapLongClick(LatLng latLng) {
+    final Map<String, Object> arguments = new HashMap<>();
+    arguments.put("latitude", latLng.latitude);
+    arguments.put("longitude", latLng.longitude);
+    methodChannel.invokeMethod("map#onMapLongClicked", arguments);
+  }
+
+  @Override
+  public void onMapClick(LatLng latLng) {
+    final Map<String, Object> arguments = new HashMap<>();
+    arguments.put("latitude", latLng.latitude);
+    arguments.put("longitude", latLng.longitude);
+    methodChannel.invokeMethod("map#onMapClicked", arguments);
   }
 }

@@ -248,6 +248,14 @@ static void interpretMarkerOptions(id json, id<FLTGoogleMapMarkerOptionsSink> si
   return [marker.userData[1] boolValue];
 }
 
+- (void)mapView:(GMSMapView *)mapView didLongPressAtCoordinate:(CLLocationCoordinate2D)coordinate {
+    [_channel invokeMethod:@"map#onMapLongClicked" arguments:@{@"latitude": @(coordinate.latitude), @"longitude": @(coordinate.longitude)}];
+}
+
+- (void)mapView:(GMSMapView *)mapView didTapAtCoordinate:(CLLocationCoordinate2D)coordinate {
+    [_channel invokeMethod:@"map#onMapClicked" arguments:@{@"latitude": @(coordinate.latitude), @"longitude": @(coordinate.longitude)}];
+}
+
 - (void)mapView:(GMSMapView*)mapView didTapInfoWindowOfMarker:(GMSMarker*)marker {
   NSString* markerId = marker.userData[0];
   [_channel invokeMethod:@"infoWindow#onTap" arguments:@{@"marker" : markerId}];
