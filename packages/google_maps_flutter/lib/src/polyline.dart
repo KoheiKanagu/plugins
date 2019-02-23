@@ -29,7 +29,9 @@ dynamic _pointsToJson(List<LatLng> points) {
   if (points == null) {
     return null;
   }
-  return points.map((o) => o.toJson());
+  final List<List<double>> result = [];
+  points.forEach((o) => result.add([o.latitude, o.longitude]));
+  return result;
 }
 
 /// Configuration options for [Polyline] instances.
