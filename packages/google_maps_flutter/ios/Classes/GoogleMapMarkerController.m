@@ -4,6 +4,8 @@
 
 #import "GoogleMapMarkerController.h"
 
+#define UIColorFromRGB(rgbValue) [UIColor colorWithRed:((float)((rgbValue & 0xFF0000) >> 16))/255.0 green:((float)((rgbValue & 0xFF00) >> 8))/255.0 blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0];
+static uint64_t _nextPolylineId = 0;
 static uint64_t _nextMarkerId = 0;
 
 @implementation FLTGoogleMapMarkerController {
@@ -61,3 +63,59 @@ static uint64_t _nextMarkerId = 0;
   _marker.zIndex = zIndex;
 }
 @end
+
+@implementation FLTGoogleMapPolylineController {
+    GMSPolyline* _polyline;
+    GMSMapView* _mapView;
+}
+- (instancetype)initWithPoints:(NSArray *)points mapView:(GMSMapView *)mapView {
+    self = [super init];
+    if (self) {
+        GMSMutablePath *paths = [[GMSMutablePath alloc]init];
+        for (CLLocation *v in points) {
+            [paths addCoordinate:v.coordinate];
+        }
+        _polyline = [GMSPolyline polylineWithPath:paths];
+        _mapView = mapView;
+        _polylineId = [NSString stringWithFormat:@"%lld", _nextPolylineId++];
+        _polyline.userData = @[ _polylineId, @(NO) ];
+    }
+    return self;
+}
+
+#pragma mark - FLTGoogleMapPolylineOptionsSink methods
+
+- (void)setPoints:(NSArray *)points {
+    GMSMutablePath *paths = [[GMSMutablePath alloc]init];
+    for (CLLocation *v in points) {
+        [paths addCoordinate:v.coordinate];
+    }
+    _polyline.path = paths;
+}
+
+- (void)setWidth:(float)width {
+    _polyline.strokeWidth = width;
+}
+
+- (void)setColor:(int)color {
+    _polyline.strokeColor = UIColorFromRGB(color);
+}
+
+- (void)setZIndex:(int)zIndex {
+    _polyline.zIndex = zIndex;
+}
+
+- (void)setVisible:(BOOL)visible {
+    _polyline.map = visible ? _mapView : nil;
+}
+
+- (void)setGeodesic:(BOOL)geodesic {
+    _polyline.geodesic = geodesic;
+}
+
+- (void)setClickable:(BOOL)clickable {
+    _polyline.tappable = clickable;
+}
+
+@end
+

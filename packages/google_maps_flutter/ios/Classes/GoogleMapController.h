@@ -35,6 +35,9 @@
 - (NSString*)addMarkerWithPosition:(CLLocationCoordinate2D)position;
 - (FLTGoogleMapMarkerController*)markerWithId:(NSString*)markerId;
 - (void)removeMarkerWithId:(NSString*)markerId;
+- (NSString*)addPolylineWithPoints:(NSArray*)points;
+- (FLTGoogleMapPolylineController*)polylineWithId:(NSString*)polylineId;
+- (void)removePolylineWithId:(NSString*)polylineId;
 @end
 
 // Allows the engine to create new Google Map instances.

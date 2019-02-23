@@ -53,7 +53,7 @@ class CameraPosition {
 
   dynamic _toMap() => <String, dynamic>{
         'bearing': bearing,
-        'target': target._toJson(),
+        'target': target.toJson(),
         'tilt': tilt,
         'zoom': zoom,
       };
@@ -105,7 +105,7 @@ class CameraUpdate {
   /// Returns a camera update that moves the camera target to the specified
   /// geographical location.
   static CameraUpdate newLatLng(LatLng latLng) {
-    return CameraUpdate._(<dynamic>['newLatLng', latLng._toJson()]);
+    return CameraUpdate._(<dynamic>['newLatLng', latLng.toJson()]);
   }
 
   /// Returns a camera update that transforms the camera so that the specified
@@ -124,7 +124,7 @@ class CameraUpdate {
   /// geographical location and zoom level.
   static CameraUpdate newLatLngZoom(LatLng latLng, double zoom) {
     return CameraUpdate._(
-      <dynamic>['newLatLngZoom', latLng._toJson(), zoom],
+      <dynamic>['newLatLngZoom', latLng.toJson(), zoom],
     );
   }
 

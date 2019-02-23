@@ -207,7 +207,7 @@ class MarkerOptions {
     addIfPresent('icon', icon?._toJson());
     addIfPresent('infoWindowAnchor', _offsetToJson(infoWindowAnchor));
     addIfPresent('infoWindowText', infoWindowText?._toJson());
-    addIfPresent('position', position?._toJson());
+    addIfPresent('position', position?.toJson());
     addIfPresent('rotation', rotation);
     addIfPresent('visible', visible);
     addIfPresent('zIndex', zIndex);

@@ -26,7 +26,7 @@ class LatLng {
   /// The longitude in degrees between -180.0 (inclusive) and 180.0 (exclusive).
   final double longitude;
 
-  dynamic _toJson() {
+  List<double> toJson() {
     return <double>[latitude, longitude];
   }
 
@@ -74,7 +74,7 @@ class LatLngBounds {
   final LatLng northeast;
 
   dynamic _toList() {
-    return <dynamic>[southwest._toJson(), northeast._toJson()];
+    return <dynamic>[southwest.toJson(), northeast.toJson()];
   }
 
   @visibleForTesting

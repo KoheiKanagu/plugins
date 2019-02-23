@@ -47,6 +47,9 @@ class GoogleMapController extends ChangeNotifier {
   /// Callbacks to receive tap events for markers placed on this map.
   final ArgumentCallbacks<Marker> onMarkerTapped = ArgumentCallbacks<Marker>();
 
+  final ArgumentCallbacks<Polyline> onPolylineTapped =
+      ArgumentCallbacks<Polyline>();
+
   /// Callbacks to receive tap events for info windows on markers
   final ArgumentCallbacks<Marker> onInfoWindowTapped =
       ArgumentCallbacks<Marker>();
@@ -56,6 +59,9 @@ class GoogleMapController extends ChangeNotifier {
   /// The returned set will be a detached snapshot of the markers collection.
   Set<Marker> get markers => Set<Marker>.from(_markers.values);
   final Map<String, Marker> _markers = <String, Marker>{};
+
+  Set<Polyline> get polylines => Set<Polyline>.from(_polylines.values);
+  final Map<String, Polyline> _polylines = <String, Polyline>{};
 
   /// True if the map camera is currently moving.
   bool get isCameraMoving => _isCameraMoving;
@@ -83,6 +89,13 @@ class GoogleMapController extends ChangeNotifier {
         final Marker marker = _markers[markerId];
         if (marker != null) {
           onMarkerTapped(marker);
+        }
+        break;
+      case 'polyline#onTap':
+        final String polylineId = call.arguments['polyline'];
+        final Polyline polyline = _polylines[polylineId];
+        if (polyline != null) {
+          onPolylineTapped(polyline);
         }
         break;
       case 'map#onMapLongClicked':
@@ -184,6 +197,23 @@ class GoogleMapController extends ChangeNotifier {
     return marker;
   }
 
+  Future<Polyline> addPolyline(PolylineOptions options) async {
+    final PolylineOptions effectiveOptions =
+        PolylineOptions.defaultOptions.copyWith(options);
+
+    // ignore: strong_mode_implicit_dynamic_method
+    final String polylineId = await _channel.invokeMethod(
+      'polyline#add',
+      <String, dynamic>{
+        'options': effectiveOptions._toJson(),
+      },
+    );
+    final Polyline polyline = Polyline(polylineId, effectiveOptions);
+    _polylines[polylineId] = polyline;
+    notifyListeners();
+    return polyline;
+  }
+
   /// Updates the specified [marker] with the given [changes]. The marker must
   /// be a current member of the [markers] set.
   ///
@@ -206,6 +236,20 @@ class GoogleMapController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> updatePolyline(
+      Polyline polyline, PolylineOptions changes) async {
+    assert(polyline != null);
+    assert(_polylines[polyline._id] == polyline);
+    assert(changes != null);
+    // ignore: strong_mode_implicit_dynamic_method
+    await _channel.invokeMethod('polyline#update', <String, dynamic>{
+      'polyline': polyline._id,
+      'options': changes._toJson(),
+    });
+    polyline._options = polyline._options.copyWith(changes);
+    notifyListeners();
+  }
+
   /// Removes the specified [marker] from the map. The marker must be a current
   /// member of the [markers] set.
   ///
@@ -217,6 +261,13 @@ class GoogleMapController extends ChangeNotifier {
     assert(marker != null);
     assert(_markers[marker._id] == marker);
     await _removeMarker(marker._id);
+    notifyListeners();
+  }
+
+  Future<void> removePolyline(Polyline polyline) async {
+    assert(polyline != null);
+    assert(_polylines[polyline._id] == polyline);
+    await _removePolyline(polyline._id);
     notifyListeners();
   }
 
@@ -235,6 +286,15 @@ class GoogleMapController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> cleanPolylines() async {
+    assert(_polylines != null);
+    final List<String> polylineIds = List<String>.from(_polylines.keys);
+    for (String id in polylineIds) {
+      await _removePolyline(id);
+    }
+    notifyListeners();
+  }
+
   /// Helper method to remove a single marker from the map. Consumed by
   /// [removeMarker] and [clearMarkers].
   ///
@@ -248,5 +308,13 @@ class GoogleMapController extends ChangeNotifier {
       'marker': id,
     });
     _markers.remove(id);
+  }
+
+  Future<void> _removePolyline(String id) async {
+    // ignore: strong_mode_implicit_dynamic_method
+    await _channel.invokeMethod('polyline#remove', <String, dynamic>{
+      'polyline': id,
+    });
+    _polylines.remove(id);
   }
 }

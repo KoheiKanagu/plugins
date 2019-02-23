@@ -7,18 +7,14 @@ package io.flutter.plugins.googlemaps;
 import android.graphics.Point;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.model.BitmapDescriptor;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.*;
 import io.flutter.view.FlutterMain;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
-/** Conversions between JSON-like values and GoogleMaps data types. */
+import java.util.*;
+
+/**
+ * Conversions between JSON-like values and GoogleMaps data types.
+ */
 class Convert {
   private static BitmapDescriptor toBitmapDescriptor(Object o) {
     final List<?> data = toList(o);
@@ -32,10 +28,10 @@ class Convert {
       case "fromAsset":
         if (data.size() == 2) {
           return BitmapDescriptorFactory.fromAsset(
-              FlutterMain.getLookupKeyForAsset(toString(data.get(1))));
+                  FlutterMain.getLookupKeyForAsset(toString(data.get(1))));
         } else {
           return BitmapDescriptorFactory.fromAsset(
-              FlutterMain.getLookupKeyForAsset(toString(data.get(1)), toString(data.get(2))));
+                  FlutterMain.getLookupKeyForAsset(toString(data.get(1)), toString(data.get(2))));
         }
       default:
         throw new IllegalArgumentException("Cannot interpret " + o + " as BitmapDescriptor");
@@ -65,13 +61,13 @@ class Convert {
         return CameraUpdateFactory.newLatLng(toLatLng(data.get(1)));
       case "newLatLngBounds":
         return CameraUpdateFactory.newLatLngBounds(
-            toLatLngBounds(data.get(1)), toPixels(data.get(2), density));
+                toLatLngBounds(data.get(1)), toPixels(data.get(2), density));
       case "newLatLngZoom":
         return CameraUpdateFactory.newLatLngZoom(toLatLng(data.get(1)), toFloat(data.get(2)));
       case "scrollBy":
         return CameraUpdateFactory.scrollBy( //
-            toFractionalPixels(data.get(1), density), //
-            toFractionalPixels(data.get(2), density));
+                toFractionalPixels(data.get(1), density), //
+                toFractionalPixels(data.get(2), density));
       case "zoomBy":
         if (data.size() == 2) {
           return CameraUpdateFactory.zoomBy(toFloat(data.get(1)));
@@ -182,8 +178,8 @@ class Convert {
     if (minMaxZoomPreference != null) {
       final List<?> zoomPreferenceData = toList(minMaxZoomPreference);
       sink.setMinMaxZoomPreference( //
-          toFloatWrapper(zoomPreferenceData.get(0)), //
-          toFloatWrapper(zoomPreferenceData.get(1)));
+              toFloatWrapper(zoomPreferenceData.get(0)), //
+              toFloatWrapper(zoomPreferenceData.get(1)));
     }
     final Object rotateGesturesEnabled = data.get("rotateGesturesEnabled");
     if (rotateGesturesEnabled != null) {
@@ -263,6 +259,42 @@ class Convert {
     final Object zIndex = data.get("zIndex");
     if (zIndex != null) {
       sink.setZIndex(toFloat(zIndex));
+    }
+  }
+
+  static void interpretPolylineOptions(Object o, PolylineOptionsSink sink) {
+    final Map<?, ?> data = toMap(o);
+    final Object points = data.get("points");
+    if (points != null) {
+      List<LatLng> list = new ArrayList<>();
+      for (Object o1 : toList(points)) {
+        list.add(toLatLng(o1));
+      }
+      sink.setPoints(list);
+    }
+    final Object width = data.get("width");
+    if (width != null) {
+      sink.setWidth(toFloat(width));
+    }
+    final Object color = data.get("color");
+    if (width != null) {
+      sink.setColor(toInt(color));
+    }
+    final Object visible = data.get("visible");
+    if (visible != null) {
+      sink.setVisible(toBoolean(visible));
+    }
+    final Object zIndex = data.get("zIndex");
+    if (zIndex != null) {
+      sink.setZIndex(toFloat(zIndex));
+    }
+    final Object geodesic = data.get("geodesic");
+    if (geodesic != null) {
+      sink.setGeodesic(toBoolean(geodesic));
+    }
+    final Object clickable = data.get("clickable");
+    if (clickable != null) {
+      sink.setClickable(toBoolean(clickable));
     }
   }
 }

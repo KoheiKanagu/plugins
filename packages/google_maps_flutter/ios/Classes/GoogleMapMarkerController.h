@@ -26,3 +26,18 @@
 @property(atomic, readonly) NSString* markerId;
 - (instancetype)initWithPosition:(CLLocationCoordinate2D)position mapView:(GMSMapView*)mapView;
 @end
+
+@protocol FLTGoogleMapPolylineOptionsSink
+- (void)setPoints:(NSArray *)points;
+- (void)setWidth:(float)width;
+- (void)setColor:(int)color;
+- (void)setZIndex:(int)zIndex;
+- (void)setVisible:(BOOL)visible;
+- (void)setGeodesic:(BOOL)geodesic;
+- (void)setClickable:(BOOL)clickable;
+@end
+
+@interface FLTGoogleMapPolylineController : NSObject <FLTGoogleMapPolylineOptionsSink>
+@property(atomic, readonly) NSString* polylineId;
+- (instancetype)initWithPoints:(NSArray *)points mapView:(GMSMapView *)mapView;
+@end
