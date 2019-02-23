@@ -42,7 +42,8 @@ class GoogleMapController extends ChangeNotifier {
 
   final ArgumentCallbacks<LatLng> onMapClicked = ArgumentCallbacks<LatLng>();
 
-  final ArgumentCallbacks<LatLng> onMapLongClicked = ArgumentCallbacks<LatLng>();
+  final ArgumentCallbacks<LatLng> onMapLongClicked =
+      ArgumentCallbacks<LatLng>();
 
   /// Callbacks to receive tap events for markers placed on this map.
   final ArgumentCallbacks<Marker> onMarkerTapped = ArgumentCallbacks<Marker>();
@@ -53,6 +54,12 @@ class GoogleMapController extends ChangeNotifier {
   /// Callbacks to receive tap events for info windows on markers
   final ArgumentCallbacks<Marker> onInfoWindowTapped =
       ArgumentCallbacks<Marker>();
+
+  final ArgumentCallbacks<IndoorBuilding> onIndoorBuildingActivated =
+      ArgumentCallbacks<IndoorBuilding>();
+
+  final ArgumentCallbacks<IndoorLevel> onIndoorLevelActivated =
+      ArgumentCallbacks<IndoorLevel>();
 
   /// The current set of markers on this map.
   ///
@@ -119,6 +126,21 @@ class GoogleMapController extends ChangeNotifier {
       case 'camera#onIdle':
         _isCameraMoving = false;
         notifyListeners();
+        break;
+      case 'map#onIndoorLevelActivated':
+        final String name = call.arguments['name'];
+        final String shortName = call.arguments['shortName'];
+        onIndoorLevelActivated(IndoorLevel(name, shortName));
+        break;
+      case 'map#onIndoorBuildingActivated':
+        final List<IndoorLevel> levels = [];
+        for (var value in call.arguments["levels"]) {
+          levels.add(IndoorLevel(value["name"], value["shortName"]));
+        }
+        final bool underground = call.arguments['underground'];
+        final int defaultIndex = call.arguments['defaultIndex'];
+        onIndoorBuildingActivated(
+            IndoorBuilding(underground, defaultIndex, levels));
         break;
       default:
         throw MissingPluginException();

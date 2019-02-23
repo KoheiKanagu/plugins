@@ -19,16 +19,16 @@ import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.PluginRegistry;
 import io.flutter.plugin.platform.PlatformView;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.flutter.plugins.googlemaps.GoogleMapsPlugin.*;
 
-/** Controller of a single GoogleMaps MapView instance. */
+/**
+ * Controller of a single GoogleMaps MapView instance.
+ */
 final class GoogleMapController
-    implements Application.ActivityLifecycleCallbacks,
+        implements Application.ActivityLifecycleCallbacks,
         GoogleMap.OnCameraIdleListener,
         GoogleMap.OnCameraMoveListener,
         GoogleMap.OnCameraMoveStartedListener,
@@ -37,6 +37,7 @@ final class GoogleMapController
         GoogleMap.OnPolylineClickListener,
         GoogleMap.OnMapClickListener,
         GoogleMap.OnMapLongClickListener,
+        GoogleMap.OnIndoorStateChangeListener,
         GoogleMapOptionsSink,
         MethodChannel.MethodCallHandler,
         OnMapReadyCallback,
@@ -51,21 +52,21 @@ final class GoogleMapController
   private final MapView mapView;
   private final Map<String, MarkerController> markers;
   private final Map<String, PolylineController> polylines;
+  private final float density;
+  private final int registrarActivityHashCode;
+  private final Context context;
   private GoogleMap googleMap;
   private boolean trackCameraPosition = false;
   private boolean myLocationEnabled = false;
   private boolean disposed = false;
-  private final float density;
   private MethodChannel.Result mapReadyResult;
-  private final int registrarActivityHashCode;
-  private final Context context;
 
   GoogleMapController(
-      int id,
-      Context context,
-      AtomicInteger activityState,
-      PluginRegistry.Registrar registrar,
-      GoogleMapOptions options) {
+          int id,
+          Context context,
+          AtomicInteger activityState,
+          PluginRegistry.Registrar registrar,
+          GoogleMapOptions options) {
     this.id = id;
     this.context = context;
     this.activityState = activityState;
@@ -75,7 +76,7 @@ final class GoogleMapController
     this.polylines = new HashMap<>();
     this.density = context.getResources().getDisplayMetrics().density;
     methodChannel =
-        new MethodChannel(registrar.messenger(), "plugins.flutter.io/google_maps_" + id);
+            new MethodChannel(registrar.messenger(), "plugins.flutter.io/google_maps_" + id);
     methodChannel.setMethodCallHandler(this);
     this.registrarActivityHashCode = registrar.activity().hashCode();
   }
@@ -117,7 +118,7 @@ final class GoogleMapController
         break;
       default:
         throw new IllegalArgumentException(
-            "Cannot interpret " + activityState.get() + " as an activity state");
+                "Cannot interpret " + activityState.get() + " as an activity state");
     }
     registrar.activity().getApplication().registerActivityLifecycleCallbacks(this);
     mapView.getMapAsync(this);
@@ -139,7 +140,7 @@ final class GoogleMapController
     return new MarkerBuilder(this);
   }
 
-  private PolylineBuilder newPolylineBuilder(){
+  private PolylineBuilder newPolylineBuilder() {
     return new PolylineBuilder(this);
   }
 
@@ -213,74 +214,65 @@ final class GoogleMapController
         }
         mapReadyResult = result;
         break;
-      case "map#update":
-        {
-          Convert.interpretGoogleMapOptions(call.argument("options"), this);
-          result.success(Convert.toJson(getCameraPosition()));
-          break;
-        }
-      case "camera#move":
-        {
-          final CameraUpdate cameraUpdate =
-              Convert.toCameraUpdate(call.argument("cameraUpdate"), density);
-          moveCamera(cameraUpdate);
-          result.success(null);
-          break;
-        }
-      case "camera#animate":
-        {
-          final CameraUpdate cameraUpdate =
-              Convert.toCameraUpdate(call.argument("cameraUpdate"), density);
-          animateCamera(cameraUpdate);
-          result.success(null);
-          break;
-        }
-      case "marker#add":
-        {
-          final MarkerBuilder markerBuilder = newMarkerBuilder();
-          Convert.interpretMarkerOptions(call.argument("options"), markerBuilder);
-          final String markerId = markerBuilder.build();
-          result.success(markerId);
-          break;
-        }
-      case "marker#remove":
-        {
-          final String markerId = call.argument("marker");
-          removeMarker(markerId);
-          result.success(null);
-          break;
-        }
-      case "marker#update":
-        {
-          final String markerId = call.argument("marker");
-          final MarkerController marker = marker(markerId);
-          Convert.interpretMarkerOptions(call.argument("options"), marker);
-          result.success(null);
-          break;
-        }
-        case "polyline#add":
-        {
-          final PolylineBuilder polylineBuilder = newPolylineBuilder();
-          Convert.interpretPolylineOptions(call.argument("options"), polylineBuilder);
-          final String polylineId = polylineBuilder.build();
-          result.success(polylineId);
-          break;
-        }
-      case "polyline#remove":
-        {
-          final String polylineId = call.argument("polyline");
-          removePolyline(polylineId);
-          result.success(null);
-          break;
-        }
-      case "polyline#update":
-        {
-          final String polylineId = call.argument("polyline");
-          final PolylineController polyline = polyline(polylineId);
-          Convert.interpretPolylineOptions(call.argument("options"), polyline);
-          result.success(null);
-          break;
-        }
+      case "map#update": {
+        Convert.interpretGoogleMapOptions(call.argument("options"), this);
+        result.success(Convert.toJson(getCameraPosition()));
+        break;
+      }
+      case "camera#move": {
+        final CameraUpdate cameraUpdate =
+                Convert.toCameraUpdate(call.argument("cameraUpdate"), density);
+        moveCamera(cameraUpdate);
+        result.success(null);
+        break;
+      }
+      case "camera#animate": {
+        final CameraUpdate cameraUpdate =
+                Convert.toCameraUpdate(call.argument("cameraUpdate"), density);
+        animateCamera(cameraUpdate);
+        result.success(null);
+        break;
+      }
+      case "marker#add": {
+        final MarkerBuilder markerBuilder = newMarkerBuilder();
+        Convert.interpretMarkerOptions(call.argument("options"), markerBuilder);
+        final String markerId = markerBuilder.build();
+        result.success(markerId);
+        break;
+      }
+      case "marker#remove": {
+        final String markerId = call.argument("marker");
+        removeMarker(markerId);
+        result.success(null);
+        break;
+      }
+      case "marker#update": {
+        final String markerId = call.argument("marker");
+        final MarkerController marker = marker(markerId);
+        Convert.interpretMarkerOptions(call.argument("options"), marker);
+        result.success(null);
+        break;
+      }
+      case "polyline#add": {
+        final PolylineBuilder polylineBuilder = newPolylineBuilder();
+        Convert.interpretPolylineOptions(call.argument("options"), polylineBuilder);
+        final String polylineId = polylineBuilder.build();
+        result.success(polylineId);
+        break;
+      }
+      case "polyline#remove": {
+        final String polylineId = call.argument("polyline");
+        removePolyline(polylineId);
+        result.success(null);
+        break;
+      }
+      case "polyline#update": {
+        final String polylineId = call.argument("polyline");
+        final PolylineController polyline = polyline(polylineId);
+        Convert.interpretPolylineOptions(call.argument("options"), polyline);
+        result.success(null);
+        break;
+      }
       default:
         result.notImplemented();
     }
@@ -486,7 +478,7 @@ final class GoogleMapController
   private boolean hasLocationPermission() {
     return checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
             == PackageManager.PERMISSION_GRANTED
-        || checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
+            || checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
             == PackageManager.PERMISSION_GRANTED;
   }
 
@@ -495,7 +487,7 @@ final class GoogleMapController
       throw new IllegalArgumentException("permission is null");
     }
     return context.checkPermission(
-        permission, android.os.Process.myPid(), android.os.Process.myUid());
+            permission, android.os.Process.myPid(), android.os.Process.myUid());
   }
 
   @Override
@@ -512,5 +504,38 @@ final class GoogleMapController
     arguments.put("latitude", latLng.latitude);
     arguments.put("longitude", latLng.longitude);
     methodChannel.invokeMethod("map#onMapClicked", arguments);
+  }
+
+  @Override
+  public void onIndoorBuildingFocused() {
+    final Map<String, Object> arguments = new HashMap<>();
+    IndoorBuilding building = googleMap.getFocusedBuilding();
+
+    final List<Map<String, Object>> levels = new ArrayList<>();
+    for (final IndoorLevel level : building.getLevels()) {
+      levels.add(new HashMap<String, Object>() {{
+        put("name", level.getName());
+        put("shortName", level.getShortName());
+      }});
+    }
+    arguments.put("levels", levels);
+    arguments.put("underground", building.isUnderground());
+    arguments.put("defaultIndex", building.getDefaultLevelIndex());
+
+    methodChannel.invokeMethod("map#onIndoorBuildingActivated", arguments);
+  }
+
+  @Override
+  public void onIndoorLevelActivated(IndoorBuilding indoorBuilding) {
+    final Map<String, Object> arguments = new HashMap<>();
+
+    if (indoorBuilding == null || indoorBuilding.getActiveLevelIndex() < 0) {
+      arguments.clear();
+    } else {
+      IndoorLevel level = indoorBuilding.getLevels().get(indoorBuilding.getActiveLevelIndex());
+      arguments.put("name", level.getName());
+      arguments.put("shortName", level.getShortName());
+    }
+    methodChannel.invokeMethod("map#onIndoorLevelActivated", arguments);
   }
 }

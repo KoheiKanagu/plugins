@@ -84,6 +84,7 @@ static void interpretPolylineOptions(id json, id<FLTGoogleMapPolylineOptionsSink
       }
     }];
     _mapView.delegate = weakSelf;
+    _mapView.indoorDisplay.delegate = self;
     _registrar = registrar;
     _cameraDidInitialSetup = NO;
   }
@@ -301,6 +302,47 @@ static void interpretPolylineOptions(id json, id<FLTGoogleMapPolylineOptionsSink
   [_channel invokeMethod:@"infoWindow#onTap" arguments:@{@"marker" : markerId}];
 }
 
+- (void)didChangeActiveBuilding:(GMSIndoorBuilding *)building {
+    [self indoorBuildingActivated:building];
+}
+
+- (void)didChangeActiveLevel:(GMSIndoorLevel *)level {
+    [self indoorLevelActivated:level];
+}
+
+- (void)indoorBuildingActivated:(GMSIndoorBuilding *)indoorBuilding {
+    NSDictionary *arg = nil;
+    if (indoorBuilding != nil) {
+        arg = @{@"underground": @(indoorBuilding.underground),
+                @"defaultLevelIndex": @(indoorBuilding.defaultLevelIndex),
+                @"levels": [self mappingIndoorLevels:indoorBuilding.levels]};
+    }
+    [_channel invokeMethod:@"map#onIndoorBuildingActivated" arguments:arg];
+}
+
+- (void)indoorLevelActivated:(GMSIndoorLevel *)indoorLevel {
+    NSDictionary *arg = nil;
+    if (indoorLevel != nil) {
+        arg =  [self mappingIndoorLevel:indoorLevel];
+    }
+    [_channel invokeMethod:@"map#onIndoorLevelActivated" arguments:arg];
+}
+
+- (NSArray<NSDictionary *> *)mappingIndoorLevels:(NSArray<GMSIndoorLevel *> *)levels {
+    if (levels == nil) {
+        return nil;
+    }
+    NSMutableArray* array = [NSMutableArray array];
+    for (GMSIndoorLevel *level in levels) {
+        [array addObject: [self mappingIndoorLevel:level]];
+    }
+    return array;
+}
+
+- (NSDictionary *)mappingIndoorLevel:(GMSIndoorLevel *)level {
+    return @{@"name": [NSString stringWithString:level.name],
+             @"shortName": [NSString stringWithString:level.shortName]};
+}
 @end
 
 #pragma mark - Implementations of JSON conversion functions.

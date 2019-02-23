@@ -22,7 +22,7 @@
 
 // Defines map overlay controllable from Flutter.
 @interface FLTGoogleMapController
-    : NSObject <GMSMapViewDelegate, FLTGoogleMapOptionsSink, FlutterPlatformView>
+    : NSObject <GMSMapViewDelegate, GMSIndoorDisplayDelegate, FLTGoogleMapOptionsSink, FlutterPlatformView>
 - (instancetype)initWithFrame:(CGRect)frame
                viewIdentifier:(int64_t)viewId
                     arguments:(id _Nullable)args
@@ -38,6 +38,11 @@
 - (NSString*)addPolylineWithPoints:(NSArray*)points;
 - (FLTGoogleMapPolylineController*)polylineWithId:(NSString*)polylineId;
 - (void)removePolylineWithId:(NSString*)polylineId;
+
+- (void)indoorBuildingActivated:(GMSIndoorBuilding *)indoorBuilding;
+- (void)indoorLevelActivated:(GMSIndoorLevel *)indoorLevel;
+- (NSArray<NSDictionary *> *)mappingIndoorLevels:(NSArray<GMSIndoorLevel *> *)levels;
+- (NSDictionary *)mappingIndoorLevel:(GMSIndoorLevel *)level;
 @end
 
 // Allows the engine to create new Google Map instances.
