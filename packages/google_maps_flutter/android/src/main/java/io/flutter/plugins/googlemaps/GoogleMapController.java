@@ -521,6 +521,7 @@ final class GoogleMapController
     arguments.put("levels", levels);
     arguments.put("underground", building.isUnderground());
     arguments.put("defaultIndex", building.getDefaultLevelIndex());
+    arguments.put("activeLevelIndex", building.getActiveLevelIndex());
 
     methodChannel.invokeMethod("map#onIndoorBuildingActivated", arguments);
   }
