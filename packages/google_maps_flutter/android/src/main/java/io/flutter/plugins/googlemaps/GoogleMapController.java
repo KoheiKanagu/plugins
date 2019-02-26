@@ -526,8 +526,9 @@ final class GoogleMapController
   }
 
   @Override
-  public void onIndoorLevelActivated(IndoorBuilding indoorBuilding) {
+  public void onIndoorLevelActivated(IndoorBuilding indoorBuilding_ignore) {
     final Map<String, Object> arguments = new HashMap<>();
+    IndoorBuilding indoorBuilding = googleMap.getFocusedBuilding();
 
     if (indoorBuilding == null || indoorBuilding.getActiveLevelIndex() < 0) {
       arguments.clear();
