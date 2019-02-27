@@ -128,8 +128,10 @@ class GoogleMapController extends ChangeNotifier {
         notifyListeners();
         break;
       case 'map#onIndoorLevelActivated':
-        final String name = call.arguments['name'];
-        final String shortName = call.arguments['shortName'];
+        final String name = call.arguments == null ? "" : call
+            .arguments['name'];
+        final String shortName = call.arguments == null ? "" : call
+            .arguments['shortName'];
         onIndoorLevelActivated(IndoorLevel(name, shortName));
         break;
       case 'map#onIndoorBuildingActivated':
