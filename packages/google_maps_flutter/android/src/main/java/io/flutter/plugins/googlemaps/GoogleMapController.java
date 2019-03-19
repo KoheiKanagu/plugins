@@ -509,20 +509,23 @@ final class GoogleMapController
 
   @Override
   public void onIndoorBuildingFocused() {
-    final Map<String, Object> arguments = new HashMap<>();
+    Map<String, Object> arguments = null;
+
     IndoorBuilding building = googleMap.getFocusedBuilding();
+    if (building != null) {
+      arguments = new HashMap<>();
 
-    final List<Map<String, Object>> levels = new ArrayList<>();
-    for (final IndoorLevel level : building.getLevels()) {
-      levels.add(new HashMap<String, Object>() {{
-        put("name", level.getName());
-        put("shortName", level.getShortName());
-      }});
+      final List<Map<String, Object>> levels = new ArrayList<>();
+      for (final IndoorLevel level : building.getLevels()) {
+          levels.add(new HashMap<String, Object>() {{
+              put("name", level.getName());
+              put("shortName", level.getShortName());
+          }});
+      }
+      arguments.put("levels", levels);
+      arguments.put("underground", building.isUnderground());
+      arguments.put("defaultIndex", building.getDefaultLevelIndex());
     }
-    arguments.put("levels", levels);
-    arguments.put("underground", building.isUnderground());
-    arguments.put("defaultIndex", building.getDefaultLevelIndex());
-
     methodChannel.invokeMethod("map#onIndoorBuildingActivated", arguments);
   }
 
