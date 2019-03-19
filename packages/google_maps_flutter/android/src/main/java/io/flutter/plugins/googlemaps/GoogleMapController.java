@@ -201,6 +201,7 @@ final class GoogleMapController
     googleMap.setOnPolylineClickListener(this);
     googleMap.setOnMapClickListener(this);
     googleMap.setOnMapLongClickListener(this);
+    googleMap.setOnIndoorStateChangeListener(this);
     updateMyLocationEnabled();
   }
 
