@@ -186,6 +186,8 @@ final class GoogleMapController
     return polyline;
   }
 
+  GroundOverlayOptions options = new GroundOverlayOptions();
+
   @Override
   public void onMapReady(GoogleMap googleMap) {
     this.googleMap = googleMap;
@@ -202,6 +204,15 @@ final class GoogleMapController
     googleMap.setOnMapClickListener(this);
     googleMap.setOnMapLongClickListener(this);
     googleMap.setOnIndoorStateChangeListener(this);
+
+    BitmapDescriptor floorMap = BitmapDescriptorFactory.fromResource(R.drawable.new_whity_20191205);
+    LatLng latLng1 = new LatLng(34.70173790754115,135.5004928261042);
+    LatLng latLng2 = new LatLng(34.702899444157914,135.50268150866032);
+    LatLngBounds bounds = new LatLngBounds(latLng1,latLng2);
+
+    options.image(floorMap);
+    options.positionFromBounds(bounds);
+
     updateMyLocationEnabled();
   }
 
@@ -529,6 +540,8 @@ final class GoogleMapController
     methodChannel.invokeMethod("map#onIndoorBuildingActivated", arguments);
   }
 
+  GroundOverlay overlay;
+
   @Override
   public void onIndoorLevelActivated(IndoorBuilding indoorBuilding_ignore) {
     Map<String, Object> arguments = new HashMap<>();
@@ -540,6 +553,19 @@ final class GoogleMapController
       IndoorLevel level = indoorBuilding.getLevels().get(indoorBuilding.getActiveLevelIndex());
       arguments.put("name", level.getName());
       arguments.put("shortName", level.getShortName());
+
+      if ("B1".equals(level.getName())){
+        if (overlay != null) {
+          overlay.remove();
+        }
+        overlay = googleMap.addGroundOverlay(options);
+      } else {
+        if (overlay != null) {
+          overlay.remove();
+          overlay = null;
+        }
+      }
+
     }
     methodChannel.invokeMethod("map#onIndoorLevelActivated", arguments);
   }

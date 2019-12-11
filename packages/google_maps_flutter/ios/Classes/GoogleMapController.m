@@ -58,6 +58,8 @@ static void interpretPolylineOptions(id json, id<FLTGoogleMapPolylineOptionsSink
   // TODO(cyanglaz): Remove this temporary fix once the Maps SDK issue is resolved.
   // https://github.com/flutter/flutter/issues/27550
   BOOL _cameraDidInitialSetup;
+    
+    GMSGroundOverlay *overlay;
 }
 
 - (instancetype)initWithFrame:(CGRect)frame
@@ -69,6 +71,7 @@ static void interpretPolylineOptions(id json, id<FLTGoogleMapPolylineOptionsSink
 
     GMSCameraPosition* camera = toOptionalCameraPosition(args[@"initialCameraPosition"]);
     _mapView = [GMSMapView mapWithFrame:frame camera:camera];
+      
     _markers = [NSMutableDictionary dictionaryWithCapacity:1];
     _polylines = [NSMutableDictionary dictionaryWithCapacity:1];
     _trackCameraPosition = NO;
@@ -87,6 +90,15 @@ static void interpretPolylineOptions(id json, id<FLTGoogleMapPolylineOptionsSink
     _mapView.indoorDisplay.delegate = self;
     _registrar = registrar;
     _cameraDidInitialSetup = NO;
+      
+      CLLocationCoordinate2D southWest = CLLocationCoordinate2DMake(34.70173790754115,135.5004928261042);
+      CLLocationCoordinate2D northEast = CLLocationCoordinate2DMake(34.702899444157914,135.50268150866032);
+      GMSCoordinateBounds *overlayBounds = [[GMSCoordinateBounds alloc] initWithCoordinate:southWest
+                                                                                coordinate:northEast];
+      UIImage *icon = [UIImage imageNamed:@"new_whity_20191205"];
+
+      overlay =    [GMSGroundOverlay groundOverlayWithBounds:overlayBounds icon:icon];
+      overlay.map = nil;
   }
   return self;
 }
@@ -124,6 +136,14 @@ static void interpretPolylineOptions(id json, id<FLTGoogleMapPolylineOptionsSink
       interpretPolylineOptions(options, [self polylineWithId:polylineId], _registrar);
       result(polylineId);
 
+//  } else if ([call.method isEqualToString:@"whityMap#add"]) {
+//      overlay.map = _mapView;
+//      result(@"result");
+//
+//  } else if ([call.method isEqualToString:@"whityMap#remove"]) {
+//        overlay.map = nil;
+//      result(@"result");
+      
   } else if ([call.method isEqualToString:@"marker#update"]) {
     interpretMarkerOptions(call.arguments[@"options"],
                            [self markerWithId:call.arguments[@"marker"]], _registrar);
@@ -324,7 +344,17 @@ static void interpretPolylineOptions(id json, id<FLTGoogleMapPolylineOptionsSink
     NSDictionary *arg = nil;
     if (indoorLevel != nil) {
         arg =  [self mappingIndoorLevel:indoorLevel];
+        if ([indoorLevel.name  isEqual: @"B1"]) {
+            overlay.map = _mapView;
+        } else {
+            overlay.map = nil;
+        }
+    } else {
+        if (overlay != nil) {
+            overlay.map = nil;
+        }
     }
+    
     [_channel invokeMethod:@"map#onIndoorLevelActivated" arguments:arg];
 }
 
