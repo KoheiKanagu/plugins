@@ -549,9 +549,6 @@ final class GoogleMapController
 
     if (indoorBuilding == null || indoorBuilding.getActiveLevelIndex() < 0) {
       arguments = null;
-      if (overlay != null) {
-        overlay.remove();
-      }
     } else {
       IndoorLevel level = indoorBuilding.getLevels().get(indoorBuilding.getActiveLevelIndex());
       arguments.put("name", level.getName());
